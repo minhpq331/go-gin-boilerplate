@@ -82,7 +82,7 @@ See `.env.example` file for available configuration options.
 
 ## Dependency Injection
 
-This project uses Google Wire for dependency injection. The wire configuration is in `internal/api/wire.go` and `internal/worker/wire.go`. To regenerate the wire_gen.go file after making changes:
+This project uses Google Wire for dependency injection. The wire configuration is in `cmd/api/wire.go` and `cmd/worker/wire.go`. To regenerate the wire_gen.go file after making changes:
 
 ```bash
 wire ./cmd/api/

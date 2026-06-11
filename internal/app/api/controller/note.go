@@ -3,6 +3,7 @@ package controller
 import (
 	"net/http"
 
+	"go-gin-boilerplate/internal/common"
 	"go-gin-boilerplate/internal/model"
 	"go-gin-boilerplate/internal/service"
 
@@ -34,16 +35,14 @@ func NewNoteController(noteService *service.NoteService) *NoteController {
 func (c *NoteController) CreateNote(ctx *gin.Context) {
 	var note model.Note
 	if err := ctx.ShouldBindJSON(&note); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
+		panic(common.NewAPIError(err.Error(), common.RequestValidationError, http.StatusBadRequest, err.Error()))
 	}
 
 	if err := c.noteService.CreateNote(ctx, &note); err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
+		panic(common.NewAPIError("Failed to create the note", common.RequestValidationError, http.StatusBadRequest, err.Error()))
 	}
 
-	ctx.JSON(http.StatusCreated, note)
+	ctx.JSON(http.StatusCreated, common.SendResponse(note))
 }
 
 // GetNote handles retrieving a note by ID
@@ -60,11 +59,10 @@ func (c *NoteController) GetNote(ctx *gin.Context) {
 	id := ctx.Param("id")
 	note, err := c.noteService.GetNote(ctx, id)
 	if err != nil {
-		ctx.JSON(http.StatusNotFound, gin.H{"error": "Note not found"})
-		return
+		panic(common.NewAPIError("Failed to get the note", common.RequestValidationError, http.StatusBadRequest, err.Error()))
 	}
 
-	ctx.JSON(http.StatusOK, note)
+	ctx.JSON(http.StatusOK, common.SendResponse(note))
 }
 
 // GetAllNotes handles retrieving all notes
@@ -78,11 +76,10 @@ func (c *NoteController) GetNote(ctx *gin.Context) {
 func (c *NoteController) GetAllNotes(ctx *gin.Context) {
 	notes, err := c.noteService.GetAllNotes(ctx)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
+		panic(common.NewAPIError("Failed to get notes", common.RequestValidationError, http.StatusBadRequest, err.Error()))
 	}
 
-	ctx.JSON(http.StatusOK, notes)
+	ctx.JSON(http.StatusOK, common.SendResponse(notes))
 }
 
 // UpdateNote handles note updates
@@ -100,23 +97,21 @@ func (c *NoteController) UpdateNote(ctx *gin.Context) {
 	id := ctx.Param("id")
 	var note model.Note
 	if err := ctx.ShouldBindJSON(&note); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
+		panic(common.NewAPIError(err.Error(), common.RequestValidationError, http.StatusBadRequest, err.Error()))
+
 	}
 
 	existingNote, err := c.noteService.GetNote(ctx, id)
 	if err != nil {
-		ctx.JSON(http.StatusNotFound, gin.H{"error": "Note not found"})
-		return
+		panic(common.NewAPIError("Failed to get the note", common.RequestValidationError, http.StatusBadRequest, err.Error()))
 	}
 
 	note.ID = existingNote.ID
 	if err := c.noteService.UpdateNote(ctx, &note); err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
+		panic(common.NewAPIError("Failed to update the note", common.RequestValidationError, http.StatusBadRequest, err.Error()))
 	}
 
-	ctx.JSON(http.StatusOK, note)
+	ctx.JSON(http.StatusOK, common.SendResponse(note))
 }
 
 // DeleteNote handles note deletion
@@ -132,8 +127,7 @@ func (c *NoteController) UpdateNote(ctx *gin.Context) {
 func (c *NoteController) DeleteNote(ctx *gin.Context) {
 	id := ctx.Param("id")
 	if err := c.noteService.DeleteNote(ctx, id); err != nil {
-		ctx.JSON(http.StatusNotFound, gin.H{"error": "Note not found"})
-		return
+		panic(common.NewAPIError("Failed to delete the note", common.RequestValidationError, http.StatusBadRequest, err.Error()))
 	}
 
 	ctx.Status(http.StatusNoContent)

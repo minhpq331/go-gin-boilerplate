@@ -38,6 +38,9 @@ func (r *Router) Setup() *gin.Engine {
 	// Custom logger
 	r.engine.Use(middleware.Logger(r.logger))
 
+	// Custom error handler
+	r.engine.Use(middleware.Recover(r.logger))
+
 	// Setup routes
 	health := r.engine.Group("/health")
 	{
